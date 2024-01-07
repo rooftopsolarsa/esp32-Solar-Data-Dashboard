@@ -1,5 +1,5 @@
 <div align = center>
-<h1>esp32-Solar-Data-Dashboard</h1>
+<h1>esp32 based Electro/Mechanical Solar Data Dashboard</h1>
   <br/>
 Retro style Solar Data Dashboard using:
   <br/>
