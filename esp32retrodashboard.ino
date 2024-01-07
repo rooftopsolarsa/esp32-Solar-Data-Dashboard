@@ -1,5 +1,6 @@
 /*
   ESP32 Servo Retro Style dashBoard using WS2812B LED Strips, NODERED or HOMEASSIST MQTT and OTA Firmware Updateable - For Sunsynk5.5
+  Based on original idea by: [HedgeSlammer](https://powerforum.co.za/profile/27886-hedgeslammer/)
   
     Copyright (C) 2024  RoofTopSolarSA
 
