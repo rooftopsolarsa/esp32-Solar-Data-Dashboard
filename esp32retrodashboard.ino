@@ -53,7 +53,8 @@ int BRIGHTNESS = 1;
 int flowSpeed = 50;
 TBlendType    currentBlending;
 
-// SERVO CALIBRATIONS
+// SERVO CALIBRATIONS - Be sure to calibrate your servo's before running this code!!
+
 #define SERVOMIN0  106 // this is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX0  600 // this is the 'maximum' pulse length count (out of 4096)
 #define SERVOMIN1  96 // this is the 'minimum' pulse length count (out of 4096)
