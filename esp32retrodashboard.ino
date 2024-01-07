@@ -231,9 +231,9 @@ void loop(void) {
   }
   client.loop();
 
-  int FlowSensorValue = 200; // analogRead(FlowSensorSpeed_Pin); // A0 pin 36
+  int FlowSensorValue = analogRead(FlowSensorSpeed_Pin); // A0 pin 36
   flowSpeed = map(FlowSensorValue, 0, 1023, 1, 150);
-  int LED_BsensorValue = 1; // analogRead(Brightness_Pin); // A3 pin 39
+  int LED_BsensorValue = analogRead(Brightness_Pin); // A3 pin 39
   BRIGHTNESS = map(LED_BsensorValue, 0, 1023, 1, 50);
 
   D_println();
