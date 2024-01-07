@@ -1,9 +1,10 @@
 <div align = center>
 <h1>esp32 based Electro/Mechanical Solar Data Dashboard</h1>
   <br/>
-Retro style Solar Data Dashboard using:
+Solar Data Dashboard using:
   <br/>
-esp32, pca9685 controller, servos and ws2812b led's all Mounted on an A1 Frame
+esp32, pca9685 controller, servos and ws2812b led's all Mounted on an A1 Art Frame
+<br />
 
 [![Badge License: GPLv3](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)](https://www.gnu.org/licenses/gpl-3.0)
  &nbsp; &nbsp;
