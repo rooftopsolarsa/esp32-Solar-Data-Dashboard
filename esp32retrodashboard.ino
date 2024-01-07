@@ -26,6 +26,19 @@
 Adafruit_PWMServoDriver board1 = Adafruit_PWMServoDriver(0x40);
 #include <PubSubClient.h>
 
+#define DEBUG 1    // SET TO 0 TO Disable serial debugging info or 1 to show serial debugging info
+#if DEBUG
+#define D_SerialBegin(...) Serial.begin(__VA_ARGS__);
+#define D_print(...)       Serial.print(__VA_ARGS__);
+#define D_write(...)       Serial.write(__VA_ARGS__);
+#define D_println(...)     Serial.println(__VA_ARGS__);
+#else
+#define D_SerialBegin(bauds);
+#define D_print(...);
+#define D_write(...);
+#define D_println(...);
+#endif
+
 #include <FastLED.h>
 FASTLED_USING_NAMESPACE
 #define NUM_LEDS 300 // add number of LEDs of your RGB LED strip
@@ -223,28 +236,28 @@ void loop(void) {
   int LED_BsensorValue = 1; // analogRead(Brightness_Pin); // A3 pin 39
   BRIGHTNESS = map(LED_BsensorValue, 0, 1023, 1, 50);
 
-  Serial.println();
+  D_println();
   String readableTime;
   getReadableTime(readableTime);
-  Serial.print("DashBoard Running For: ");
-  Serial.println(readableTime);
-  //Serial.println(" ago");
+  D_print("DashBoard Running For: ");
+  D_println(readableTime);
+  //D_println(" ago");
   
-  Serial.print("LED Brightness: ");
-  Serial.println(BRIGHTNESS);
+  D_print("LED Brightness: ");
+  D_println(BRIGHTNESS);
   
   if ( TopicArrived )
   {
     //parse topic
-    Serial.print("RetroDisplayData: ");
-    Serial.println( mqttpayload );
+    D_print("RetroDisplayData: ");
+    D_println( mqttpayload );
     TopicArrived = false;
     //size_t inputLength;
     StaticJsonDocument<384> doc;
     DeserializationError error = deserializeJson(doc, mqttpayload);
     if (error) {
-      Serial.print("deserializeJson() failed: ");
-      Serial.println(error.c_str());
+      D_print("deserializeJson() failed: ");
+      D_println(error.c_str());
       return;
     }
     /* json raw data sample from MQTT
@@ -285,66 +298,66 @@ void loop(void) {
     int LSStages = doc["LSStage"]; // None to 8 0 to 8
 
     // Battery SOC % - SERVO 0
-    Serial.print("Battery SOC %: ");
-    Serial.print(BatSOC, 2);
+    D_print("Battery SOC %: ");
+    D_print(BatSOC, 2);
     if (BatSOC <= batteryLowWarning) {
       beepBeep();
     }
     BatSOCpulse = map(BatSOC, 0, 100, 180, 0);
     int SBatSOCpulse = map(BatSOCpulse, 0, 180, SERVOMIN0, SERVOMAX0);
     board1.setPWM(0, 0, SBatSOCpulse);
-    Serial.print(" Battery SOC % Servo0 Angle: ");
-    Serial.print(BatSOCpulse);
-    Serial.print(" Battery SOC % Servo0 Pulse: ");
-    Serial.println(SBatSOCpulse);
+    D_print(" Battery SOC % Servo0 Angle: ");
+    D_print(BatSOCpulse);
+    D_print(" Battery SOC % Servo0 Pulse: ");
+    D_println(SBatSOCpulse);
 
     // Inverter Voltage - SERVO 1
-    Serial.print("Inverter Voltage: ");
-    Serial.print(InverterVoltage, 0);
+    D_print("Inverter Voltage: ");
+    D_print(InverterVoltage, 0);
     invVpulse = map(InverterVoltage, 200, 260, 180, 0);
     int SinvVpulse = map(invVpulse, 0, 180, SERVOMIN1, SERVOMAX1);
     board1.setPWM(1, 0, SinvVpulse);
-    Serial.print(" Inverter Voltage Servo1 Angle: ");
-    Serial.print(invVpulse);
-    Serial.print(" Inverter Voltage Servo1 Pulse: ");
-    Serial.println(SinvVpulse);
+    D_print(" Inverter Voltage Servo1 Angle: ");
+    D_print(invVpulse);
+    D_print(" Inverter Voltage Servo1 Pulse: ");
+    D_println(SinvVpulse);
 
     // Grid Watts - Eskom - SERVO 2
-    Serial.print("Grid Watts: ");
-    Serial.print(GridWatts, 0);
+    D_print("Grid Watts: ");
+    D_print(GridWatts, 0);
     GridWattspulse = map(GridWatts, 0, 6000, 180, 0);
     int SGridWattspulse = map(GridWattspulse, 0, 180, SERVOMIN2, SERVOMAX2);
     board1.setPWM(2, 0, SGridWattspulse);
-    Serial.print(" Grid Watts Servo2 Angle: ");
-    Serial.print(GridWattspulse);
-    Serial.print(" Grid Watts Servo2 Pulse: ");
-    Serial.println(SGridWattspulse);
+    D_print(" Grid Watts Servo2 Angle: ");
+    D_print(GridWattspulse);
+    D_print(" Grid Watts Servo2 Pulse: ");
+    D_println(SGridWattspulse);
 
     // Inverter Watts - SERVO 3
-    Serial.print("Inverter Watts: ");
-    Serial.print(InvertWatts, 0);
+    D_print("Inverter Watts: ");
+    D_print(InvertWatts, 0);
     InvertWattspulse = map(InvertWatts, 0, 6000, 180, 0);
     int SInvertWattspulse = map(InvertWattspulse, 0, 180, SERVOMIN3, SERVOMAX3);
     board1.setPWM(3, 0, SInvertWattspulse);
-    Serial.print(" Inverter Watts Servo3 Angle: ");
-    Serial.print(InvertWattspulse);
-    Serial.print(" Inverter Watts Servo3 Pulse: ");
-    Serial.println(SInvertWattspulse);
+    D_print(" Inverter Watts Servo3 Angle: ");
+    D_print(InvertWattspulse);
+    D_print(" Inverter Watts Servo3 Pulse: ");
+    D_println(SInvertWattspulse);
 
     // Non Essentials Watts - SERVO 4
-    Serial.print("Non Essentials Watts: ");
-    Serial.print(NonELoadsWatts, 0);
+    D_print("Non Essentials Watts: ");
+    D_print(NonELoadsWatts, 0);
     NonELoadsWattspulse = map(NonELoadsWatts, 0, 6000, 180, 0);
     int SNonELoadsWattspulse = map(NonELoadsWattspulse, 0, 180, SERVOMIN4, SERVOMAX4);
     board1.setPWM(4, 0, SNonELoadsWattspulse);
-    Serial.print(" Non Essentials Watts Servo4 Angle: ");
-    Serial.print(NonELoadsWattspulse);
-    Serial.print(" Non Essentials Watts Servo4 Pulse: ");
-    Serial.println(SNonELoadsWattspulse);
+    D_print(" Non Essentials Watts Servo4 Angle: ");
+    D_print(NonELoadsWattspulse);
+    D_print(" Non Essentials Watts Servo4 Pulse: ");
+    D_println(SNonELoadsWattspulse);
 
     // Essentials Watts - SERVO 5
-    Serial.print("Essentials Watts: ");
-    Serial.print(ELoadsWatts, 0);
+    D_print("Essentials Watts: ");
+    D_print(ELoadsWatts, 0);
     if (ELoadsWatts <= 0) {
       stateToEssentialLoads = false;
     }
@@ -355,25 +368,25 @@ void loop(void) {
     ELoadsWattspulse = map(ELoadsWatts, 0, 6000, 180, 0);
     int SELoadsWattspulse = map(ELoadsWattspulse, 0, 180, SERVOMIN5, SERVOMAX5);
     board1.setPWM(5, 0, SELoadsWattspulse);
-    Serial.print(" Essentials Watts Servo5 Angle: ");
-    Serial.print(ELoadsWattspulse);
-    Serial.print(" Essentials Watts Servo5 Pulse: ");
-    Serial.println(SELoadsWattspulse);
+    D_print(" Essentials Watts Servo5 Angle: ");
+    D_print(ELoadsWattspulse);
+    D_print(" Essentials Watts Servo5 Pulse: ");
+    D_println(SELoadsWattspulse);
 
     // Battery Voltage - SERVO 6
-    Serial.print("Battery Voltage: ");
-    Serial.print(BatVoltX, 2);
+    D_print("Battery Voltage: ");
+    D_print(BatVoltX, 2);
     BatVoltpulse = map(BatVoltX, 48, 54, 180, 0);
     int SBatVoltpulse = map(BatVoltpulse, 0, 180, SERVOMIN6, SERVOMAX6);
     board1.setPWM(6, 0, SBatVoltpulse);
-    Serial.print(" Battery Voltage Servo6 Angle: ");
-    Serial.print(BatVoltpulse);
-    Serial.print(" Battery Voltage Servo6 Pulse: ");
-    Serial.println(SBatVoltpulse);
+    D_print(" Battery Voltage Servo6 Angle: ");
+    D_print(BatVoltpulse);
+    D_print(" Battery Voltage Servo6 Pulse: ");
+    D_println(SBatVoltpulse);
 
     // Battery Charge/Discharge Amps - SERVO 7
-    Serial.print("Battery Amps: ");
-    Serial.print(BatAmpsX, 2);
+    D_print("Battery Amps: ");
+    D_print(BatAmpsX, 2);
     if (BatAmpsX < 0) {
       stateBatAmps = false;
     }
@@ -384,36 +397,36 @@ void loop(void) {
     BatAmpspulse = map(BatAmpsX, -100, 50, 0, 180);
     int SBatAmpspulse = map(BatAmpspulse, 0, 180, SERVOMIN7, SERVOMAX7);
     board1.setPWM(7, 0, SBatAmpspulse);
-    Serial.print(" Battery Amps Servo7 Angle: ");
-    Serial.print(BatAmpspulse);
-    Serial.print(" Battery Amps Servo7 Pulse: ");
-    Serial.println(SBatAmpspulse);
+    D_print(" Battery Amps Servo7 Angle: ");
+    D_print(BatAmpspulse);
+    D_print(" Battery Amps Servo7 Pulse: ");
+    D_println(SBatAmpspulse);
 
     // MPPT 1 Watts - SERVO 8
-    Serial.print("MPPT 1 Watts: ");
-    Serial.print(Mppt1, 0);
+    D_print("MPPT 1 Watts: ");
+    D_print(Mppt1, 0);
     Mppt1pulse = map(Mppt1, 0, 3000, 180, 0);
     int SMppt1pulse = map(Mppt1pulse, 0, 180, SERVOMIN8, SERVOMAX8);
     board1.setPWM(8, 0, SMppt1pulse);
-    Serial.print(" MPPT 1 Watts Servo8 Angle: ");
-    Serial.print(Mppt1pulse);
-    Serial.print(" MPPT 1 Servo8 Pulse: ");
-    Serial.println(SMppt1pulse);
+    D_print(" MPPT 1 Watts Servo8 Angle: ");
+    D_print(Mppt1pulse);
+    D_print(" MPPT 1 Servo8 Pulse: ");
+    D_println(SMppt1pulse);
 
     // MPPT 2 Watts - SERVO 9
-    Serial.print("MPPT 2 Watts: ");
-    Serial.print(Mppt2, 0);
+    D_print("MPPT 2 Watts: ");
+    D_print(Mppt2, 0);
     Mppt2pulse = map(Mppt2, 0, 3000, 180, 0);
     int SMppt2pulse = map(Mppt2pulse, 0, 180, SERVOMIN9, SERVOMAX9);
     board1.setPWM(9, 0, SMppt2pulse);
-    Serial.print(" MPPT 2 Watts Servo9 Angle: ");
-    Serial.print(Mppt2pulse);
-    Serial.print(" MPPT 2 Servo9 Pulse: ");
-    Serial.println(SMppt2pulse);
+    D_print(" MPPT 2 Watts Servo9 Angle: ");
+    D_print(Mppt2pulse);
+    D_print(" MPPT 2 Servo9 Pulse: ");
+    D_println(SMppt2pulse);
     
     // Total PV Watts - SERVO 10
-    Serial.print("Total PV Watts: ");
-    Serial.print(PVTotal, 0);
+    D_print("Total PV Watts: ");
+    D_print(PVTotal, 0);
     if (PVTotal > 5) {
       stateSolar = true;
     }
@@ -421,56 +434,56 @@ void loop(void) {
     PVTotalpulse = map(PVTotal, 0, 6000, 180, 0);
     int SPVTotalpulse = map(PVTotalpulse, 0, 180, SERVOMIN10, SERVOMAX10);
     board1.setPWM(10, 0, SPVTotalpulse);
-    Serial.print(" Total PV Watts Servo10 Angle: ");
-    Serial.print(PVTotalpulse);
-    Serial.print(" Total PV Servo10 Pulse: ");
-    Serial.println(SPVTotalpulse);
+    D_print(" Total PV Watts Servo10 Angle: ");
+    D_print(PVTotalpulse);
+    D_print(" Total PV Servo10 Pulse: ");
+    D_println(SPVTotalpulse);
     
-    Serial.println();
-    Serial.print("Loadshedding National State: ");
-    Serial.print(LSStages);
+    D_println();
+    D_print("Loadshedding National State: ");
+    D_print(LSStages);
     LoadshedIndicate_National(LSStages);
-    Serial.println(" bigger then 0 = Yes - Show National Loadshedding LED Status");
-    Serial.print("Loadshedding Local State: ");
-    Serial.print(LSLocalOnOff);
+    D_println(" bigger then 0 = Yes - Show National Loadshedding LED Status");
+    D_print("Loadshedding Local State: ");
+    D_print(LSLocalOnOff);
     LoadshedIndicate_Local(LSLocalOnOff);
-    Serial.println(" bigger then 0 = Yes - Show Local Loadshedding LED Status");
-    Serial.print("Loadshedding Stage: ");
-    Serial.print(LSStages);
-    Serial.println(" (LEDs 1 to 8)");
+    D_println(" bigger then 0 = Yes - Show Local Loadshedding LED Status");
+    D_print("Loadshedding Stage: ");
+    D_print(LSStages);
+    D_println(" (LEDs 1 to 8)");
     StagesLeds(LSStages);
     green();
     orange();
     red();
-    Serial.println();
+    D_println();
   }
   
   if (stateToEssentialLoads )
   { ToEssentialLoads_led();
-    Serial.println("Inverter to Essential Loads - LED's Green Direction to Essential Loads (LEDs 37 to 47)");
+    D_println("Inverter to Essential Loads - LED's Green Direction to Essential Loads (LEDs 37 to 47)");
   }
   if (stateSolar )
   { solar_in_led();
-    Serial.println("Solar In - LED's Green Direction to Inverter (LEDs 15 to 25)");
+    D_println("Solar In - LED's Green Direction to Inverter (LEDs 15 to 25)");
   }
   else {
     solar_out_led();
-    Serial.println("Solar Off - LED's Black (LEDs 15 to 25)");
+    D_println("Solar Off - LED's Black (LEDs 15 to 25)");
   }
   if (stateBatAmps )
   { BatAmps_Ch_led();
-    Serial.println("Battery Charging - LED's Green Direction to Inverter (LEDs 26 to 36)");
+    D_println("Battery Charging - LED's Green Direction to Inverter (LEDs 26 to 36)");
   }
   else {
     BatAmps_DiCh_led();
-    Serial.println("Battery dis-Charging - LED's Red Direction to Battery(LEDs 26 to 36)");
+    D_println("Battery dis-Charging - LED's Red Direction to Battery(LEDs 26 to 36)");
   }
 
 } // end main loop
 
 void beepBeep() {
-  Serial.println(" ");
-  Serial.println("BEEP BEEP BEEP BEEP BEEP BEEP");
+  D_println(" ");
+  D_println("BEEP BEEP BEEP BEEP BEEP BEEP");
   static unsigned long previousMillis1 = 0;
   unsigned long currentMillis1 = millis();
   static int state = 0;  // Store the current state
@@ -487,8 +500,8 @@ void beepBeep() {
 void StagesLeds(int tLSST) {
   // Loadshedding Stage received from MQTT Data
   int theLoadshedStages = tLSST;
-  Serial.print("Loadshed Number LED bars lit: ");
-  Serial.println(theLoadshedStages);
+  D_print("Loadshed Number LED bars lit: ");
+  D_println(theLoadshedStages);
   //Number LEDs mapped to loadshed stage
   int num_LS_leds_switchedon = map(theLoadshedStages, 0, 8, 0, 8);
   //Light up the LEDs
@@ -506,7 +519,7 @@ void StagesLeds(int tLSST) {
 void LoadshedIndicate_National(int tLSLonOff) {
   for (int tLSLonOffi = 297; tLSLonOffi < 300; tLSLonOffi++) {
     if (tLSLonOff > 0) {
-      rgb_led[tLSLonOffi] = CRGB::RED;
+      rgb_led[tLSLonOffi] = CRGB::Red;
     }
     else {
       rgb_led[tLSLonOffi] = CRGB::Blue;
@@ -519,7 +532,7 @@ void LoadshedIndicate_National(int tLSLonOff) {
 void LoadshedIndicate_Local(int tLSNonOff) {
   for (int tLSNonOffi = 292; tLSNonOffi < 295; tLSNonOffi++) {
     if (tLSNonOff > 0) {
-      rgb_led[tLSNonOffi] = CRGB::RED;
+      rgb_led[tLSNonOffi] = CRGB::Red;
     }
     else {
       rgb_led[tLSNonOffi] = CRGB::Blue;
