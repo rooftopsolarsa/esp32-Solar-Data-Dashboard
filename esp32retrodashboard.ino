@@ -1,7 +1,7 @@
 /*
   ESP32 Servo Retro Style dashBoard using WS2812B LED Strips, NODERED or HOMEASSIST MQTT and OTA Firmware Updateable - For Sunsynk5.5
   Based on original idea by: [HedgeSlammer](https://powerforum.co.za/profile/27886-hedgeslammer/)
-  
+
     Copyright (C) 2024  RoofTopSolarSA
 
     This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,14 @@
 #include <WiFiUdp.h>
 #include <WiFiClient.h>
 #include <WebServer.h>
+#include <ESPmDNS.h>
+#include <Update.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 Adafruit_PWMServoDriver board1 = Adafruit_PWMServoDriver(0x40);
 #include <PubSubClient.h>
 
-#define DEBUG 1    // SET TO 0 TO Disable serial debugging info or 1 to show serial debugging info
+#define DEBUG 0    // SET TO 0 TO Disable serial debugging info or 1 to show serial debugging info
 #if DEBUG
 #define D_SerialBegin(...) Serial.begin(__VA_ARGS__);
 #define D_print(...)       Serial.print(__VA_ARGS__);
@@ -53,8 +55,7 @@ int BRIGHTNESS = 1;
 int flowSpeed = 50;
 TBlendType    currentBlending;
 
-// SERVO CALIBRATIONS - Be sure to calibrate your servo's before running this code!!
-
+// SERVO CALIBRATIONS
 #define SERVOMIN0  106 // this is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX0  600 // this is the 'maximum' pulse length count (out of 4096)
 #define SERVOMIN1  96 // this is the 'minimum' pulse length count (out of 4096)
@@ -105,7 +106,7 @@ char message_buffe[16];
 String pubString;
 String pubStringe;
 int iTotalDelay;
-const char* versionNumber = "Online-Ver a1008";
+const char* versionNumber = "Online-Ver a1009";
 // ------------------------------------------------------------
 // Start Editing here
 const char* ssid = "YOURWIFINETWORKNAME";
@@ -206,7 +207,94 @@ void reconnect() {
     }
   }
 }
+WebServer server(80);
 
+/*
+ * Login page
+ */
+
+const char* loginIndex =
+ "<form name='loginForm'>"
+    "<table width='20%' bgcolor='A09F9F' align='center'>"
+        "<tr>"
+            "<td colspan=2>"
+                "<center><font size=4><b>ESP32 Login Page</b></font></center>"
+                "<br>"
+            "</td>"
+            "<br>"
+            "<br>"
+        "</tr>"
+        "<tr>"
+             "<td>Username:</td>"
+             "<td><input type='text' size=25 name='userid'><br></td>"
+        "</tr>"
+        "<br>"
+        "<br>"
+        "<tr>"
+            "<td>Password:</td>"
+            "<td><input type='Password' size=25 name='pwd'><br></td>"
+            "<br>"
+            "<br>"
+        "</tr>"
+        "<tr>"
+            "<td><input type='submit' onclick='check(this.form)' value='Login'></td>"
+        "</tr>"
+    "</table>"
+"</form>"
+"<script>"
+    "function check(form)"
+    "{"
+    "if(form.userid.value=='admin' && form.pwd.value=='admin')"
+    "{"
+    "window.open('/serverIndex')"
+    "}"
+    "else"
+    "{"
+    " alert('Error Password or Username')/*displays error message*/"
+    "}"
+    "}"
+"</script>";
+
+/*
+ * Server Index Page
+ */
+
+const char* serverIndex =
+"<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>"
+"<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
+   "<input type='file' name='update'>"
+        "<input type='submit' value='Update'>"
+    "</form>"
+ "<div id='prg'>progress: 0%</div>"
+ "<script>"
+  "$('form').submit(function(e){"
+  "e.preventDefault();"
+  "var form = $('#upload_form')[0];"
+  "var data = new FormData(form);"
+  " $.ajax({"
+  "url: '/update',"
+  "type: 'POST',"
+  "data: data,"
+  "contentType: false,"
+  "processData:false,"
+  "xhr: function() {"
+  "var xhr = new window.XMLHttpRequest();"
+  "xhr.upload.addEventListener('progress', function(evt) {"
+  "if (evt.lengthComputable) {"
+  "var per = evt.loaded / evt.total;"
+  "$('#prg').html('progress: ' + Math.round(per*100) + '%');"
+  "}"
+  "}, false);"
+  "return xhr;"
+  "},"
+  "success:function(d, s) {"
+  "console.log('success!')"
+ "},"
+ "error: function (a, b, c) {"
+ "}"
+ "});"
+ "});"
+ "</script>";
 void setup() {
   Serial.begin(115200);
   mqtttopic.reserve(100);
@@ -224,9 +312,55 @@ void setup() {
   Wire.begin();
   board1.begin();
   board1.setPWMFreq(60);
+    /*use mdns for host name resolution*/
+  if (!MDNS.begin(host)) { //http://esp32.local
+    Serial.println("Error setting up MDNS responder!");
+    while (1) {
+      delay(1000);
+    }
+  }
+  Serial.println("mDNS responder started");
+  /*return index page which is stored in serverIndex */
+  server.on("/", HTTP_GET, []() {
+    server.sendHeader("Connection", "close");
+    server.send(200, "text/html", loginIndex);
+  });
+  server.on("/serverIndex", HTTP_GET, []() {
+    server.sendHeader("Connection", "close");
+    server.send(200, "text/html", serverIndex);
+  });
+  /*handling uploading firmware file */
+  server.on("/update", HTTP_POST, []() {
+    server.sendHeader("Connection", "close");
+    server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+    ESP.restart();
+  }, []() {
+    HTTPUpload& upload = server.upload();
+    if (upload.status == UPLOAD_FILE_START) {
+      Serial.printf("Update: %s\n", upload.filename.c_str());
+      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { //start with max available size
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_WRITE) {
+      /* flashing firmware to ESP*/
+      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_END) {
+      if (Update.end(true)) { //true to set the size to the current progress
+        Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+      } else {
+        Update.printError(Serial);
+      }
+    }
+  });
+  server.begin();
 }
 
 void loop(void) {
+  server.handleClient();
+  delay(1);
+  
   if (!client.connected()) {
     reconnect();
   }
@@ -243,10 +377,10 @@ void loop(void) {
   D_print("DashBoard Running For: ");
   D_println(readableTime);
   //D_println(" ago");
-  
+
   D_print("LED Brightness: ");
   D_println(BRIGHTNESS);
-  
+
   if ( TopicArrived )
   {
     //parse topic
@@ -424,7 +558,7 @@ void loop(void) {
     D_print(Mppt2pulse);
     D_print(" MPPT 2 Servo9 Pulse: ");
     D_println(SMppt2pulse);
-    
+
     // Total PV Watts - SERVO 10
     D_print("Total PV Watts: ");
     D_print(PVTotal, 0);
@@ -439,7 +573,7 @@ void loop(void) {
     D_print(PVTotalpulse);
     D_print(" Total PV Servo10 Pulse: ");
     D_println(SPVTotalpulse);
-    
+
     D_println();
     D_print("Loadshedding National State: ");
     D_print(LSStages);
@@ -458,7 +592,7 @@ void loop(void) {
     red();
     D_println();
   }
-  
+
   if (stateToEssentialLoads )
   { ToEssentialLoads_led();
     D_println("Inverter to Essential Loads - LED's Green Direction to Essential Loads (LEDs 37 to 47)");
