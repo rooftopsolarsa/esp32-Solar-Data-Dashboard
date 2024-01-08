@@ -11,6 +11,9 @@ esp32, pca9685 controller, servos and ws2812b led's all Mounted on/in an A1 Art 
  <br/>
  Based on original idea by: [HedgeSlammer](https://powerforum.co.za/profile/27886-hedgeslammer/)
  <br/>
+ <br/>
+ This code is a WORK IN PROGRESS
+ <br/>
  <h5>If you find this project useful, then please give it a star.</h5>
 </div>
 <br/>
