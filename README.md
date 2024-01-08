@@ -30,5 +30,9 @@ esp32, pca9685 controller, servos and ws2812b led's all Mounted on/in an A1 Art 
 <br/>
 ![Screenshot of The Solar dashBoard Serial Output.](https://raw.githubusercontent.com/rooftopsolarsa/esp32-Solar-Data-Dashboard/main/images/some-of-the-dashboard-electronics.jpeg)
 <br/>
+![Screenshot of The Solar dashBoard Serial Output.](https://raw.githubusercontent.com/rooftopsolarsa/esp32-Solar-Data-Dashboard/main/images/solar-dashboard-the-brains.jpeg)
+<br/>
+![Screenshot of The Solar dashBoard Serial Output.](https://raw.githubusercontent.com/rooftopsolarsa/esp32-Solar-Data-Dashboard/main/images/solar-dashboard-the-leds.jpeg)
+<br/>
 
 <h5>If you find this project useful, then please give it a star.</h5>
