@@ -28,7 +28,7 @@
 Adafruit_PWMServoDriver board1 = Adafruit_PWMServoDriver(0x40);
 #include <PubSubClient.h>
 
-#define DEBUG 0    // SET TO 0 TO Disable serial debugging info or 1 to show serial debugging info
+#define DEBUG 1    // SET TO 0 TO Disable serial debugging info or 1 to show serial debugging info
 #if DEBUG
 #define D_SerialBegin(...) Serial.begin(__VA_ARGS__);
 #define D_print(...)       Serial.print(__VA_ARGS__);
@@ -106,7 +106,7 @@ char message_buffe[16];
 String pubString;
 String pubStringe;
 int iTotalDelay;
-const char* versionNumber = "Online-Ver a1009";
+const char* versionNumber = "Online-Ver a1012";
 // ------------------------------------------------------------
 // Start Editing here
 const char* ssid = "YOURWIFINETWORKNAME";
@@ -214,12 +214,18 @@ WebServer server(80);
  */
 
 const char* loginIndex =
+"<!DOCTYPE html>"
+"<html>"
+"<head>"
+"<title>ESP32 Retro DashBoard OTA Login</title>"
+"</head>"
+"<body>"
  "<form name='loginForm'>"
     "<table width='20%' bgcolor='A09F9F' align='center'>"
         "<tr>"
             "<td colspan=2>"
-                "<center><font size=4><b>ESP32 Login Page</b></font></center>"
-                "<br>"
+                "<center><font size=4><b>ESP32 Retro DashBoard OTA Login</b></font></center>"
+                "<br />"
             "</td>"
             "<br>"
             "<br>"
@@ -253,13 +259,21 @@ const char* loginIndex =
     " alert('Error Password or Username')/*displays error message*/"
     "}"
     "}"
-"</script>";
+"</script>"
+"</body>"
+ "</html>";
 
 /*
  * Server Index Page
  */
 
 const char* serverIndex =
+"<!DOCTYPE html>"
+"<html>"
+"<head>"
+"<title>ESP32 Retro DashBoard OTA Login</title>"
+"</head>"
+"<body>"
 "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>"
 "<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
    "<input type='file' name='update'>"
@@ -294,7 +308,10 @@ const char* serverIndex =
  "}"
  "});"
  "});"
- "</script>";
+ "</script>"
+ "</body>"
+ "</html>";
+ 
 void setup() {
   Serial.begin(115200);
   mqtttopic.reserve(100);
@@ -313,7 +330,7 @@ void setup() {
   board1.begin();
   board1.setPWMFreq(60);
     /*use mdns for host name resolution*/
-  if (!MDNS.begin(host)) { //http://esp32.local
+  if (!MDNS.begin(host)) { //http://esp32-retrostats.local or device IP
     Serial.println("Error setting up MDNS responder!");
     while (1) {
       delay(1000);
@@ -366,9 +383,9 @@ void loop(void) {
   }
   client.loop();
 
-  int FlowSensorValue = analogRead(FlowSensorSpeed_Pin); // A0 pin 36
+  int FlowSensorValue = 400; // analogRead(FlowSensorSpeed_Pin); // A0 pin 36
   flowSpeed = map(FlowSensorValue, 0, 1023, 1, 150);
-  int LED_BsensorValue = analogRead(Brightness_Pin); // A3 pin 39
+  int LED_BsensorValue = 1; // analogRead(Brightness_Pin); // A3 pin 39
   BRIGHTNESS = map(LED_BsensorValue, 0, 1023, 1, 50);
 
   D_println();
