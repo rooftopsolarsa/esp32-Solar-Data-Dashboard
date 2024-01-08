@@ -271,7 +271,7 @@ const char* serverIndex =
 "<!DOCTYPE html>"
 "<html>"
 "<head>"
-"<title>ESP32 Retro DashBoard OTA Login</title>"
+"<title>ESP32 Retro DashBoard OTA Update Page</title>"
 "</head>"
 "<body>"
 "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>"
@@ -499,6 +499,13 @@ void loop(void) {
     // Non Essentials Watts - SERVO 4
     D_print("Non Essentials Watts: ");
     D_print(NonELoadsWatts, 0);
+    if (NonELoadsWatts <= 0) {
+      stateInverterToNonEssentials = false;
+    }
+    else if (NonELoadsWatts > 0) {
+      stateInverterToNonEssentials = true;
+    }
+    else;
     NonELoadsWattspulse = map(NonELoadsWatts, 0, 6000, 180, 0);
     int SNonELoadsWattspulse = map(NonELoadsWattspulse, 0, 180, SERVOMIN4, SERVOMAX4);
     board1.setPWM(4, 0, SNonELoadsWattspulse);
@@ -614,6 +621,12 @@ void loop(void) {
   { ToEssentialLoads_led();
     D_println("Inverter to Essential Loads - LED's Green Direction to Essential Loads (LEDs 37 to 47)");
   }
+
+  if (stateInverterToNonEssentials )
+  { InverterToNonEssentialLoads_led();
+    D_println("Inverter to Non-Essential Loads - LED's Green Direction to Non-Essential Loads (LEDs 47 to 57)");
+  }
+  
   if (stateSolar )
   { solar_in_led();
     D_println("Solar In - LED's Green Direction to Inverter (LEDs 15 to 25)");
@@ -772,6 +785,16 @@ void ToEssentialLoads_led() {
     FastLED.show();
     delay(flowSpeed);
     rgb_led[ToEssentialLoads] = CRGB::Black;
+  }
+}
+
+void InverterToNonEssentialLoads_led() {
+  for (int InvToNonEssentialLoads = 48; InvToNonEssentialLoads < 58; InvToNonEssentialLoads = InvToNonEssentialLoads + 1) {
+    rgb_led[InvToNonEssentialLoads] = CRGB::Green;
+    FastLED.setBrightness(BRIGHTNESS);
+    FastLED.show();
+    delay(flowSpeed);
+    rgb_led[InvToNonEssentialLoads] = CRGB::Black;
   }
 }
 
